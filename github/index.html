@@ -41,53 +41,51 @@
 }).addTo(map);
 
 var xhr = new XMLHttpRequest();
- var serviceUrl = 'http://localhost:3000/arcgis/rest/services/PM10_2021/FeatureServer/0/query?where=1%3D1&outFields=maximum_value&f=geojson';
+ var serviceUrl = 'https://ukair.maps.rcdo.co.uk/ukairserver/rest/services/Hosted/Nitrogen_Dioxide_annual_mean_Local_Authority_2021/FeatureServerhttps://ukair.maps.rcdo.co.uk/ukairserver/rest/services/Hosted/Nitrogen_Dioxide_annual_mean_Local_Authority_2021/FeatureServer/0/query';
  // 使用Ajax获取图层数据
   // 定义分级样式函数
-  function getColor(d) {
-            return d > 22 ? '#800026' :
-                   d > 18 ? '#BD0026' :
-                   d > 14 ? '#E31A1C' :
-                   d > 10 ? '#FC4E2A' :
-                            '#FFEDA0';
-        }
-
-        function style(feature) {
-            return {
-                fillColor: getColor(feature.properties.maximum_value),
-                weight: 2,
-                opacity: 1,
-                color: 'white',
-                dashArray: '3',
-                fillOpacity: 0.7
-            };
-        }
-// 使用Ajax获取图层数据
-$.ajax({
-            url: serviceUrl,
-            dataType: 'json',
-            success: function(data) {
-                console.log('Data received:', data);
-                // 检查数据是否有效
-                if (data.features && data.features.length > 0) {
-                    // 将数据解析为GeoJSON格式并应用样式
-                    var geojsonLayer = L.geoJSON(data, {
-                        style: style
-                    });
-
-                    // 将GeoJSON图层添加到地图中
-                    geojsonLayer.addTo(map);
-
-                    // 根据数据范围调整地图视图
-                    map.fitBounds(geojsonLayer.getBounds());
-                } else {
-                    console.error('No features found in the data.');
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.error('Error fetching data:', textStatus, errorThrown);
-            }
+  var params = {
+      where: '1=1',        // 查询条件，这里是返回所有记录的简单条件
+      outFields: 'maximum_value', // 返回的字段，这里只返回 maximum_value
+      f: 'json'            // 返回的格式为 JSON
+    };
+    $.ajax({
+      url: serviceUrl,
+      dataType: 'json',
+      data: params,
+      success: function(response) {
+        // 处理成功响应
+        console.log('Success!', response);
+        
+        // 在这里可以处理返回的 JSON 数据
+        // 例如，访问返回的 features 数组
+        const features = response.features;
+        features.forEach(function(feature) {
+          var maxValue = feature.attributes.maximum_value;
+          var levelClass = getLevelClass(maxValue);
+          $('#output').append('<p class="' + levelClass + '">maximum_value: ' + maxValue + '</p>');
         });
+        
+        // 如果你有其他处理逻辑，可以在这里添加
+      },
+      error: function(xhr, status, error) {
+        // 处理请求失败
+        console.error('Error:', status, error);
+      }
+    });
+
+    // 根据 maximum_value 的值返回对应的 CSS 类名
+    function getLevelClass(value) {
+      if (value < 10) {
+        return 'level-1';
+      } else if (value < 15) {
+        return 'level-2';
+      } else if (value < 20) {
+        return 'level-3';
+      } else {
+        return 'level-4';
+      }
+    }
  //var url ='https://services3.arcgis.com/zqHx3dnSyFS5bMVS/arcgis/rest/services/PM10_2021/FeatureServer';
 /*xhr.open('GET', url);
         xhr.setRequestHeader('Content-Type', 'application/json');
