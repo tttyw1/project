@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Display a feature layer</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg=="
+  crossorigin=""></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAcSUIUOseddDm0cxnGQzxIR7vJgsLZbdLE3w=="
+    crossorigin="" />
+    <script
+    src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"
+    integrity="sha512-G4+fuKc1B96F0sUG7eKtgiJr0JM3iQC4bfc8WtYvmm7msHES0Hst2mLWASPb8zZk91tqMG86AjP0tgXIEFPPUA=="
+    crossorigin=""></script>
+    <script
+  src="https://unpkg.com/esri-leaflet-vector@4.2.3/dist/esri-leaflet-vector.js"
+  integrity="sha512-/H7f4mjvCB73Rsi7cWCW0Z3Zl1InqvtGOQsipk5ClXhAxfrw6GSjEnPz2VVTuh7dE29ws8tS3OGHowmkEae2/A=="
+  crossorigin=""></script>
+  <script
+  src="https://unpkg.com/esri-leaflet-cluster@3.0.1/dist/esri-leaflet-cluster.js"
+  integrity="sha512-owlLNb9FC1P/vOTmW7GHEfuqsD54Xqj+B49XDVIqWlRTdPVXN4b/OrdarBVMP9ITeikRa3qj2HYQuFFORGCF4A=="
+  crossorigin=""></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+</head>
+<body>
+    <div id="map" style="height: 600px;"></div>
+     <!-- 引入 Leaflet JS -->
+	<script>
+        var map = L.map('map').setView([55, -1.5548], 5);
+		//Load tiles from open street map
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+var xhr = new XMLHttpRequest();
+ var serviceUrl = 'http://localhost:3000/arcgis/rest/services/PM10_2021/FeatureServer/0/query?where=1%3D1&outFields=maximum_value&f=geojson';
+ // 使用Ajax获取图层数据
+  // 定义分级样式函数
+  function getColor(d) {
+            return d > 22 ? '#800026' :
+                   d > 18 ? '#BD0026' :
+                   d > 14 ? '#E31A1C' :
+                   d > 10 ? '#FC4E2A' :
+                            '#FFEDA0';
+        }
+
+        function style(feature) {
+            return {
+                fillColor: getColor(feature.properties.maximum_value),
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.7
+            };
+        }
+// 使用Ajax获取图层数据
+$.ajax({
+            url: serviceUrl,
+            dataType: 'json',
+            success: function(data) {
+                console.log('Data received:', data);
+                // 检查数据是否有效
+                if (data.features && data.features.length > 0) {
+                    // 将数据解析为GeoJSON格式并应用样式
+                    var geojsonLayer = L.geoJSON(data, {
+                        style: style
+                    });
+
+                    // 将GeoJSON图层添加到地图中
+                    geojsonLayer.addTo(map);
+
+                    // 根据数据范围调整地图视图
+                    map.fitBounds(geojsonLayer.getBounds());
+                } else {
+                    console.error('No features found in the data.');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error fetching data:', textStatus, errorThrown);
+            }
+        });
+ //var url ='https://services3.arcgis.com/zqHx3dnSyFS5bMVS/arcgis/rest/services/PM10_2021/FeatureServer';
+/*xhr.open('GET', url);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var geojsonLayer = L.geoJSON(JSON.parse(xhr.responseText));
+                geojsonLayer.addTo(map);
+                map.fitBounds(geojsonLayer.getBounds());
+            } else {
+                console.error('Failed to load GeoJSON.');
+            }
+        };
+        xhr.send();*/
+//var geojsonUrl = 'https://leeds365-my.sharepoint.com/personal/ml222yt_leeds_ac_uk/_layouts/15/download.aspx?share=EVYz3puajf1GuLfsrbnpFskBE_QWRgqsT6xlGS7-by8RVA';
+    //https://onedrive.live.com/download?cid=<CID>&resid=<RESID>&authkey=<AUTHKEY>
+/*var arcgisUrl = 'https://services3.arcgis.com/zqHx3dnSyFS5bMVS/arcgis/rest/services/PM10_2021/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson';
+      
+     $.ajax({
+      url: "http://localhost:8000/pm10.geojson",
+      //dataType: 'geojson',
+      success: function(data) {
+        // 将GeoJSON数据添加到地图
+        L.geoJSON(data).addTo(map);
+      },
+      error: function(xhr, status, error) {
+        console.error('Error fetching data from ArcGIS Online:', error);
+      }
+    });*/ 
+    
+    //    https://leeds365-my.sharepoint.com/personal/ml222yt_leeds_ac_uk/_layouts/15/download.aspx?share=EVYz3puajf1GuLfsrbnpFskBE_QWRgqsT6xlGS7-by8RVA
+
+    /*fetch(geojsonUrl)
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data).addTo(map);
+            })
+            .catch(error => console.error('Error loading the GeoJSON file:', error));*/
+//L.geoJSON(geojsonFeature).addTo(map); 
+//var arcgisOnlineLayer = L.esri.featureLayer({
+    //url: "https://services3.arcgis.com/zqHx3dnSyFS5bMVS/arcgis/rest/services/PM10_2021/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson"
+//}).addTo(map);
+
+    </script>
+</body>
+</html>
