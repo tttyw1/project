@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ArcGIS Data Fetch and Classification</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    .level-1 { color: green; }
+    .level-2 { color: yellow; }
+    .level-3 { color: orange; }
+    .level-4 { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Fetching and Displaying Data from ArcGIS Service</h1>
+  <div id="output"></div>
+
+  <script>
+    // 使用公共代理服务器 URL
+    var serviceUrl = 'https://your-proxy-server-domain.com/proxy';
+
+    // 使用 jQuery 发送 Ajax 请求
+    $.ajax({
+      url: serviceUrl,
+      dataType: 'json',
+      success: function(response) {
+        // 打印整个响应对象以检查数据结构
+        console.log('Success!', response);
+
+        // 确认响应对象包含 features 属性
+        if (response.features && Array.isArray(response.features)) {
+          const features = response.features;
+          features.forEach(function(feature) {
+            var maxValue = feature.attributes.maximum_value;
+            if (maxValue >= 6 && maxValue <= 26) {
+              var levelClass = getLevelClass(maxValue);
+              $('#output').append('<p class="' + levelClass + '">maximum_value: ' + maxValue + '</p>');
+            }
+          });
+        } else {
+          console.error('Error: "features" is undefined or not an array.');
+        }
+      },
+      error: function(xhr, status, error) {
+        // 处理请求失败
+        console.error('Error:', status, error);
+      }
+    });
+
+    // 根据 maximum_value 的值返回对应的 CSS 类名
+    function getLevelClass(value) {
+      if (value < 10) {
+        return 'level-1';
+      } else if (value < 15) {
+        return 'level-2';
+      } else if (value < 20) {
+        return 'level-3';
+      } else {
+        return 'level-4';
+      }
+    }
+  </script>
+</body>
+</html>
